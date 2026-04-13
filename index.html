@@ -1,4 +1,10 @@
-
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>親子包棟人數管理</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
   --g:#639922;--g-bg:#C0DD97;--g-dark:#27500A;
@@ -12,29 +18,38 @@
   --surface:#fff;--bg:#f5f4f0;
   --r8:8px;--r12:12px;--r14:14px;
 }
+@media(prefers-color-scheme:dark){
+  :root{
+    --border:rgba(255,255,255,0.12);
+    --text:#f0f0f0;--muted:#aaa;--hint:#666;
+    --surface:#1e1e1e;--bg:#141414;
+    --g-bg:#1a2e0a;--g:#97C459;--g-dark:#C0DD97;
+    --r-bg:#2e0f0f;--r:#E24B4A;--r-light:#3a1212;
+    --am-bg:#2e1e05;--am:#EF9F27;--am-dark:#FAC775;
+    --bl-bg:#0c1e33;--bl:#85B7EB;--bl-dark:#B5D4F4;
+    --pk-bg:#2e1020;--pk:#ED93B1;--pk-dark:#F4C0D1;
+    --pu-bg:#1a1840;--pu:#AFA9EC;--pu-dark:#CECBF6;
+  }
+}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .page{max-width:900px;margin:0 auto;padding:1.5rem 1rem 4rem}
-
-/* nav tabs */
 .nav{display:flex;gap:4px;margin-bottom:1.25rem;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r12);padding:4px}
-.nav-tab{flex:1;text-align:center;padding:8px 4px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .15s}
+.nav-tab{flex:1;text-align:center;padding:8px 4px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .15s;user-select:none}
 .nav-tab.active{background:var(--text);color:var(--surface)}
-
-/* pages */
 .pg{display:none}.pg.show{display:block}
 
 /* info card */
 .info-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r14);padding:1.25rem;margin-bottom:1rem}
 .ic-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
-.ic-title{font-size:13px;font-weight:600;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;flex:1}
-.edit-btn{font-size:12px;padding:3px 10px;border-radius:6px;border:0.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer}
-.edit-btn:hover{background:var(--bg)}
+.ic-title{font-size:12px;font-weight:600;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;flex:1}
+.ic-btn{font-size:12px;padding:3px 10px;border-radius:6px;border:0.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer}
+.ic-btn:hover{background:var(--bg)}
 .info-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .info-item label{font-size:11px;color:var(--hint);font-weight:500;display:block;margin-bottom:3px}
-.info-item .val{font-size:15px;font-weight:600;color:var(--text)}
-.info-item input{width:100%;font-size:14px;padding:5px 8px;border:0.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:inherit}
-.info-item input:focus{outline:none;border-color:#888}
+.info-item .val{font-size:15px;font-weight:600}
+.info-item input{width:100%;font-size:14px;padding:5px 8px;border:0.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:inherit;outline:none}
+.info-item input:focus{border-color:#888}
 .save-row{display:flex;justify-content:flex-end;margin-top:10px;gap:8px}
 
 /* kpi */
@@ -48,7 +63,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .kpi-sub{font-size:10px;margin-top:3px;opacity:.7}
 .kpi-g .kpi-sub{color:var(--g)}.kpi-b .kpi-sub{color:var(--bl)}.kpi-p .kpi-sub{color:var(--pk)}.kpi-a .kpi-sub{color:var(--am)}
 
-/* chart card */
+/* cards */
 .card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r14);padding:1rem 1.25rem;margin-bottom:1rem}
 .card-title{font-size:12px;font-weight:600;letter-spacing:.05em;color:var(--muted);margin-bottom:12px;text-transform:uppercase}
 .chart-row{display:flex;align-items:center;gap:2rem}
@@ -58,23 +73,55 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
 .leg-name{color:var(--muted);flex:1}.leg-val{font-weight:600}
 
-/* table */
+/* github config banner */
+.gh-banner{background:var(--pu-bg);border:0.5px solid var(--pu);border-radius:var(--r12);padding:1rem 1.25rem;margin-bottom:1rem}
+.gh-banner-title{font-size:13px;font-weight:600;color:var(--pu-dark);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.gh-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gh-form-full{grid-column:1/-1}
+.gh-label{font-size:11px;font-weight:600;color:var(--pu);display:block;margin-bottom:3px}
+.gh-input{width:100%;font-size:13px;padding:6px 9px;border:0.5px solid var(--pu);border-radius:6px;background:var(--surface);color:var(--text);font-family:inherit;outline:none}
+.gh-input:focus{border-color:var(--pu-dark)}
+.gh-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;align-items:center}
+.gh-hint{font-size:11px;color:var(--pu);flex:1}
+
+/* source bar */
+.source-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.source-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+.s-gh{background:var(--pu-bg);color:var(--pu-dark)}
+.s-csv{background:var(--bl-bg);color:var(--bl-dark)}
+.s-local{background:var(--am-bg);color:var(--am-dark)}
+.source-actions{display:flex;gap:6px;margin-left:auto}
+.sm-btn{font-size:12px;padding:3px 10px;border-radius:6px;border:0.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap}
+.sm-btn:hover{background:var(--bg)}
+
+/* write status */
+.write-status{font-size:12px;padding:6px 12px;border-radius:6px;margin-bottom:8px;display:none}
+.ws-saving{background:var(--am-bg);color:var(--am-dark);display:block}
+.ws-ok{background:var(--g-bg);color:var(--g-dark);display:block}
+.ws-err{background:var(--r-light);color:var(--r);display:block}
+
+/* csv-notice */
+.csv-notice{font-size:12px;color:var(--bl-dark);background:var(--bl-bg);border-radius:var(--r8);padding:8px 12px;margin-bottom:10px;line-height:1.6}
+
+/* toolbar + table */
 .toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .tabs{display:flex;gap:5px;flex:1;flex-wrap:wrap}
-.tab{cursor:pointer;padding:3px 11px;border-radius:20px;font-size:12px;border:0.5px solid var(--border);color:var(--muted);background:transparent}
+.tab{cursor:pointer;padding:3px 11px;border-radius:20px;font-size:12px;border:0.5px solid var(--border);color:var(--muted);background:transparent;user-select:none}
 .tab.active{background:var(--text);color:var(--surface);border-color:transparent}
 .btn{cursor:pointer;border:0.5px solid var(--border);background:transparent;border-radius:var(--r8);padding:5px 11px;font-size:12px;color:var(--muted);white-space:nowrap}
 .btn:hover{background:var(--bg);color:var(--text)}
 .btn-primary{background:var(--text);color:var(--surface);border-color:transparent}
-.btn-primary:hover{opacity:.85;background:var(--text);color:var(--surface)}
+.btn-primary:hover{opacity:.85}
 .btn-danger:hover{background:var(--r-light);color:var(--r);border-color:var(--r-bg)}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;padding:7px 10px;color:var(--hint);font-weight:500;border-bottom:0.5px solid var(--border);font-size:12px}
-td{padding:8px 10px;border-bottom:0.5px solid var(--border)}
+td{padding:9px 10px;border-bottom:0.5px solid var(--border)}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--bg)}
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.b-confirmed{background:var(--g);color:#fff}.b-declined{background:var(--r);color:#fff}.b-pending{background:var(--am);color:#fff}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.b-confirmed{background:var(--g);color:#fff}
+.b-declined{background:var(--r);color:#fff}
+.b-pending{background:var(--am);color:#fff}
 .act-btn{cursor:pointer;border:none;background:transparent;font-size:12px;padding:3px 7px;border-radius:5px;color:var(--muted)}
 .act-btn:hover{background:var(--bg);color:var(--text)}
 .act-btn.del:hover{color:var(--r)}
@@ -84,7 +131,7 @@ tr:hover td{background:var(--bg)}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .form-full{grid-column:1/-1}
 .field label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px;font-weight:500}
-input[type=text],input[type=number],input[type=date],select{width:100%;font-size:13px;padding:7px 9px;border:0.5px solid var(--border);border-radius:var(--r8);background:var(--surface);color:var(--text);outline:none;font-family:inherit}
+input[type=text],input[type=number],input[type=date],input[type=password],select{width:100%;font-size:13px;padding:7px 9px;border:0.5px solid var(--border);border-radius:var(--r8);background:var(--surface);color:var(--text);outline:none;font-family:inherit}
 input:focus,select:focus{border-color:#888}
 .add-btn{margin-top:10px;width:100%;padding:9px;border:0.5px solid var(--border);background:transparent;border-radius:var(--r8);font-size:14px;cursor:pointer;color:var(--text);font-family:inherit}
 .add-btn:hover{background:var(--bg)}
@@ -96,7 +143,7 @@ input:focus,select:focus{border-color:#888}
 .modal-title{font-size:15px;font-weight:600;margin-bottom:1.25rem}
 .modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
 
-/* room page */
+/* rooms */
 .room-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:1rem}
 .room-kpi{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r12);padding:1rem;text-align:center}
 .room-kpi-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;letter-spacing:.04em}
@@ -110,18 +157,18 @@ input:focus,select:focus{border-color:#888}
 .adj-btn{width:26px;height:26px;border-radius:50%;border:0.5px solid var(--border);background:transparent;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--text)}
 .adj-btn:hover{background:var(--bg)}
 .adj-val{font-size:14px;font-weight:600;min-width:20px;text-align:center}
-.room-tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;margin:1px;background:var(--am-bg);color:var(--am-dark)}
 .combo-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r12);padding:1rem 1.25rem;margin-bottom:.75rem}
-.combo-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.combo-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
 .combo-name{font-size:14px;font-weight:600;flex:1}
-.combo-total{font-size:12px;color:var(--muted)}
+.combo-count{font-size:12px;color:var(--muted)}
 .combo-rooms{display:flex;gap:8px;flex-wrap:wrap}
 .combo-room{background:var(--bg);border-radius:6px;padding:5px 10px;font-size:12px;display:flex;align-items:center;gap:5px}
 .dot-double{width:8px;height:8px;border-radius:50%;background:var(--bl);flex-shrink:0}
 .dot-single{width:8px;height:8px;border-radius:50%;background:var(--pu);flex-shrink:0}
 .dot-family{width:8px;height:8px;border-radius:50%;background:var(--g);flex-shrink:0}
-.note-input{font-size:12px;padding:4px 8px;border:0.5px dashed var(--border);border-radius:6px;background:transparent;color:var(--muted);width:100%;margin-top:8px;font-family:inherit}
+.note-input{font-size:12px;padding:5px 9px;border:0.5px dashed var(--border);border-radius:6px;background:transparent;color:var(--muted);width:100%;margin-top:8px;font-family:inherit}
 .note-input:focus{outline:none;border-color:#888;border-style:solid}
+.room-tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;margin:2px;background:var(--am-bg);color:var(--am-dark);font-weight:500}
 
 /* toast */
 .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(1rem);background:var(--text);color:var(--surface);padding:9px 18px;border-radius:20px;font-size:13px;opacity:0;transition:all .25s;pointer-events:none;z-index:999;white-space:nowrap}
@@ -129,41 +176,40 @@ input:focus,select:focus{border-color:#888}
 
 @media(max-width:580px){
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
-  .form-grid{grid-template-columns:1fr}.form-full{grid-column:1}
+  .form-grid,.gh-form{grid-template-columns:1fr}.form-full,.gh-form-full{grid-column:1}
   .chart-row{flex-direction:column;align-items:flex-start}
   .info-grid{grid-template-columns:1fr 1fr}
   .room-summary{grid-template-columns:repeat(2,1fr)}
 }
 </style>
-
+</head>
+<body>
 <div class="page">
 
-<!-- NAV -->
 <div class="nav">
   <div class="nav-tab active" onclick="switchPage('overview',this)">總覽</div>
   <div class="nav-tab" onclick="switchPage('people',this)">名單</div>
   <div class="nav-tab" onclick="switchPage('rooms',this)">房間分配</div>
+  <div class="nav-tab" onclick="switchPage('settings',this)">設定</div>
 </div>
 
-<!-- ══ PAGE: OVERVIEW ══ -->
+<!-- ══ OVERVIEW ══ -->
 <div class="pg show" id="pg-overview">
-
-  <!-- 活動資訊 -->
   <div class="info-card">
     <div class="ic-header">
       <span class="ic-title">活動資訊</span>
-      <button class="edit-btn" id="info-edit-btn" onclick="toggleInfoEdit()">編輯</button>
+      <button class="ic-btn" id="info-edit-btn" onclick="toggleInfoEdit()">編輯</button>
     </div>
-    <div class="info-grid" id="info-view">
+    <div id="info-view" class="info-grid">
       <div class="info-item"><label>出發日期</label><div class="val" id="v-start">2026/09/19</div></div>
       <div class="info-item"><label>結束日期</label><div class="val" id="v-end">2026/09/20</div></div>
       <div class="info-item"><label>住宿地點</label><div class="val" id="v-place">尚未決定</div></div>
     </div>
-    <div style="display:none" id="info-edit">
+    <div id="info-edit" style="display:none">
       <div class="info-grid">
-        <div class="info-item"><label>出發日期</label><input type="date" id="e-start"></div>
-        <div class="info-item"><label>結束日期</label><input type="date" id="e-end"></div>
-        <div class="info-item"><label>住宿地點</label><input type="text" id="e-place" placeholder="例：宜蘭"></div>
+        <div class="info-item"><label>出發日期</label><input type="date" id="ie-start"></div>
+        <div class="info-item"><label>結束日期</label><input type="date" id="ie-end"></div>
+        <div class="info-item"><label>住宿地點</label><input type="text" id="ie-place" placeholder="例：宜蘭"></div>
       </div>
       <div class="save-row">
         <button class="btn" onclick="cancelInfoEdit()">取消</button>
@@ -171,16 +217,12 @@ input:focus,select:focus{border-color:#888}
       </div>
     </div>
   </div>
-
-  <!-- KPI -->
   <div class="kpi-grid">
     <div class="kpi kpi-g"><div class="kpi-label">確認人數</div><div class="kpi-val" id="k-total">0</div><div class="kpi-sub">已確認參加</div></div>
     <div class="kpi kpi-b"><div class="kpi-label">大人</div><div class="kpi-val" id="k-adults">0</div><div class="kpi-sub">已確認</div></div>
     <div class="kpi kpi-p"><div class="kpi-label">小孩</div><div class="kpi-val" id="k-children">0</div><div class="kpi-sub">已確認</div></div>
     <div class="kpi kpi-a"><div class="kpi-label">考慮中人數</div><div class="kpi-val" id="k-potential">0</div><div class="kpi-sub">尚未確定</div></div>
   </div>
-
-  <!-- Chart -->
   <div class="card">
     <div class="card-title">狀態分佈</div>
     <div class="chart-row">
@@ -194,8 +236,25 @@ input:focus,select:focus{border-color:#888}
   </div>
 </div>
 
-<!-- ══ PAGE: PEOPLE ══ -->
+<!-- ══ PEOPLE ══ -->
 <div class="pg" id="pg-people">
+  <div class="source-bar">
+    <span class="source-badge s-local" id="source-badge">本機資料</span>
+    <div class="source-actions">
+      <button class="sm-btn" onclick="reloadCSV()">↺ 重新載入</button>
+      <button class="sm-btn" onclick="exportCSV()">匯出 CSV</button>
+    </div>
+  </div>
+
+  <!-- GitHub 寫回狀態 -->
+  <div class="write-status" id="write-status"></div>
+
+  <!-- 唯讀提示（非 GitHub 模式） -->
+  <div class="csv-notice" id="csv-notice" style="display:none">
+    ✦ 目前顯示 <strong>data.csv</strong> 的資料（唯讀）。<br>
+    前往「設定」頁填入 GitHub Token 以啟用新增 / 編輯功能，或直接修改 repo 裡的 data.csv。
+  </div>
+
   <div class="card">
     <div class="toolbar">
       <div class="tabs">
@@ -204,17 +263,17 @@ input:focus,select:focus{border-color:#888}
         <div class="tab" onclick="setFilter('pending',this)">考慮中</div>
         <div class="tab" onclick="setFilter('declined',this)">不參加</div>
       </div>
-      <button class="btn" onclick="exportCSV()">匯出 CSV</button>
-      <button class="btn btn-danger" onclick="confirmReset()">清空</button>
+      <button class="btn btn-danger" id="reset-btn" onclick="confirmReset()" style="display:none">清空</button>
     </div>
     <table>
       <thead><tr><th>姓名</th><th>狀態</th><th>大人</th><th>小孩</th><th>備註</th><th></th></tr></thead>
       <tbody id="tbody"></tbody>
     </table>
-    <div class="empty" id="empty" style="display:none">還沒有資料，在下方新增</div>
+    <div class="empty" id="empty" style="display:none">還沒有資料，在下方新增吧</div>
   </div>
 
-  <div class="card">
+  <!-- 新增表單 -->
+  <div class="card" id="add-card">
     <div class="card-title">新增家庭</div>
     <div class="form-grid">
       <div class="field"><label>姓名 *</label><input type="text" id="f-name" placeholder="王小明"></div>
@@ -233,14 +292,19 @@ input:focus,select:focus{border-color:#888}
   </div>
 </div>
 
-<!-- ══ PAGE: ROOMS ══ -->
+<!-- ══ ROOMS ══ -->
 <div class="pg" id="pg-rooms">
-  <!-- 房型調整 -->
   <div class="card">
     <div class="card-title">房型設定</div>
     <table>
       <thead><tr><th>房型</th><th>說明</th><th>容納</th><th>數量調整</th></tr></thead>
       <tbody>
+        <tr>
+          <td><span class="room-type-badge rt-family">家庭房</span></td>
+          <td style="color:var(--muted);font-size:12px">有小孩家庭</td>
+          <td style="font-size:12px">4 人</td>
+          <td><div class="room-adj"><button class="adj-btn" onclick="adjRoom('family',-1)">−</button><span class="adj-val" id="ra-family">0</span><button class="adj-btn" onclick="adjRoom('family',1)">+</button><span style="font-size:11px;color:var(--hint);margin-left:4px">間</span></div></td>
+        </tr>
         <tr>
           <td><span class="room-type-badge rt-double">雙人房</span></td>
           <td style="color:var(--muted);font-size:12px">夫妻 / 無小孩家庭</td>
@@ -253,12 +317,6 @@ input:focus,select:focus{border-color:#888}
           <td style="font-size:12px">1 人</td>
           <td><div class="room-adj"><button class="adj-btn" onclick="adjRoom('single',-1)">−</button><span class="adj-val" id="ra-single">0</span><button class="adj-btn" onclick="adjRoom('single',1)">+</button><span style="font-size:11px;color:var(--hint);margin-left:4px">間</span></div></td>
         </tr>
-        <tr>
-          <td><span class="room-type-badge rt-family">家庭房</span></td>
-          <td style="color:var(--muted);font-size:12px">有小孩家庭</td>
-          <td style="font-size:12px">4 人</td>
-          <td><div class="room-adj"><button class="adj-btn" onclick="adjRoom('family',-1)">−</button><span class="adj-val" id="ra-family">0</span><button class="adj-btn" onclick="adjRoom('family',1)">+</button><span style="font-size:11px;color:var(--hint);margin-left:4px">間</span></div></td>
-        </tr>
       </tbody>
     </table>
     <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
@@ -266,21 +324,65 @@ input:focus,select:focus{border-color:#888}
       <button class="btn btn-primary" onclick="renderRooms()">套用</button>
     </div>
   </div>
-
-  <!-- 房間總覽 KPI -->
   <div class="room-summary">
     <div class="room-kpi"><div class="room-kpi-label">總房間數</div><div class="room-kpi-val" id="rk-total">0</div><div class="room-kpi-sub">間</div></div>
-    <div class="room-kpi"><div class="room-kpi-label">總人數</div><div class="room-kpi-val" id="rk-people">0</div><div class="room-kpi-sub">人（已確認）</div></div>
-    <div class="room-kpi"><div class="room-kpi-label">剩餘床位</div><div class="room-kpi-val" id="rk-spare">0</div><div class="room-kpi-sub">個空位</div></div>
+    <div class="room-kpi"><div class="room-kpi-label">確認人數</div><div class="room-kpi-val" id="rk-people">0</div><div class="room-kpi-sub">人</div></div>
+    <div class="room-kpi"><div class="room-kpi-label">床位空餘</div><div class="room-kpi-val" id="rk-spare">0</div><div class="room-kpi-sub">個空位</div></div>
   </div>
-
-  <!-- 分配清單 -->
   <div id="room-list"></div>
-
-  <!-- 民宿搜尋提示 -->
   <div class="card" id="hostel-hint" style="display:none">
     <div class="card-title">民宿搜尋關鍵字</div>
-    <div id="hostel-keywords" style="line-height:2"></div>
+    <div id="hostel-keywords" style="line-height:2.2"></div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS ══ -->
+<div class="pg" id="pg-settings">
+  <div class="gh-banner">
+    <div class="gh-banner-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color:var(--pu-dark)"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub 設定（啟用自動寫回 data.csv）
+    </div>
+    <div class="gh-form">
+      <div>
+        <span class="gh-label">Repository（owner/repo）</span>
+        <input class="gh-input" type="text" id="gh-repo" placeholder="sb-kevin/trip-headcount">
+      </div>
+      <div>
+        <span class="gh-label">Branch</span>
+        <input class="gh-input" type="text" id="gh-branch" placeholder="main">
+      </div>
+      <div class="gh-form-full">
+        <span class="gh-label">Personal Access Token（需有 repo 權限）</span>
+        <input class="gh-input" type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      </div>
+    </div>
+    <div class="gh-actions">
+      <span class="gh-hint" id="gh-hint">填入後按「儲存」，Token 只存在你的瀏覽器。</span>
+      <button class="btn" onclick="clearGHConfig()">清除</button>
+      <button class="btn btn-primary" onclick="saveGHConfig()">儲存設定</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">取得 GitHub Token 步驟</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2">
+      1. 開啟 <strong style="color:var(--text)">GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong><br>
+      2. 點「Generate new token (classic)」<br>
+      3. Note 隨意填，Expiration 選你要的期限<br>
+      4. 勾選 <strong style="color:var(--text)">repo</strong>（整個 repo 權限）<br>
+      5. 點「Generate token」，複製 <code style="background:var(--bg);padding:1px 5px;border-radius:4px">ghp_</code> 開頭的 Token<br>
+      6. 貼到上方欄位並儲存
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">資料來源說明</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2">
+      <strong style="color:var(--pu-dark)">● GitHub 模式</strong>：已設定 Token，新增 / 編輯 / 刪除後自動寫回 data.csv<br>
+      <strong style="color:var(--bl-dark)">● CSV 唯讀模式</strong>：未設 Token，但能讀到 data.csv（顯示用）<br>
+      <strong style="color:var(--am-dark)">● 本機模式</strong>：找不到 data.csv，資料存在瀏覽器 localStorage
+    </div>
   </div>
 </div>
 
@@ -312,129 +414,360 @@ input:focus,select:focus{border-color:#888}
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-const LS = 'gtrip_v3';
+// ── State ─────────────────────────────────────────────────
+const LS = 'gtrip_v4';
 let data = [], filter = 'all', editId = null, pieChart = null;
+let dataSource = 'local'; // 'github' | 'csv' | 'local'
+let csvSha = null; // GitHub API 需要 SHA 來更新檔案
 let tripInfo = { start:'2026-09-19', end:'2026-09-20', place:'尚未決定' };
-let roomCounts = { double:0, single:0, family:0 };
+let roomCounts = { family:0, double:0, single:0 };
 let roomNotes = {};
+let ghConfig = { repo:'', branch:'main', token:'' };
 
-function load() {
+// ── Persist ───────────────────────────────────────────────
+function loadLS() {
   try {
-    const s = JSON.parse(localStorage.getItem(LS)||'{}');
-    data = s.data||[];
-    if(s.tripInfo) tripInfo = s.tripInfo;
-    if(s.roomCounts) roomCounts = s.roomCounts;
-    if(s.roomNotes) roomNotes = s.roomNotes;
-  } catch { data=[]; }
+    const s = JSON.parse(localStorage.getItem(LS) || '{}');
+    if (s.tripInfo)   tripInfo   = { ...tripInfo,   ...s.tripInfo };
+    if (s.roomCounts) roomCounts = { ...roomCounts, ...s.roomCounts };
+    if (s.roomNotes)  roomNotes  = s.roomNotes;
+    if (s.ghConfig)   ghConfig   = { ...ghConfig,   ...s.ghConfig };
+    if (dataSource === 'local' && s.data) data = s.data;
+  } catch {}
 }
-function save() {
-  localStorage.setItem(LS, JSON.stringify({data, tripInfo, roomCounts, roomNotes}));
+function saveMeta() {
+  const s = JSON.parse(localStorage.getItem(LS) || '{}');
+  s.tripInfo = tripInfo; s.roomCounts = roomCounts;
+  s.roomNotes = roomNotes; s.ghConfig = ghConfig;
+  if (dataSource === 'local') s.data = data;
+  localStorage.setItem(LS, JSON.stringify(s));
 }
-function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2); }
 
-// ── NAV ──
+// ── GitHub config ─────────────────────────────────────────
+function saveGHConfig() {
+  ghConfig.repo   = document.getElementById('gh-repo').value.trim();
+  ghConfig.branch = document.getElementById('gh-branch').value.trim() || 'main';
+  ghConfig.token  = document.getElementById('gh-token').value.trim();
+  saveMeta();
+  document.getElementById('gh-hint').textContent = '已儲存！重新載入資料中…';
+  reloadCSV();
+}
+function clearGHConfig() {
+  ghConfig = { repo:'', branch:'main', token:'' };
+  saveMeta();
+  document.getElementById('gh-repo').value = '';
+  document.getElementById('gh-branch').value = 'main';
+  document.getElementById('gh-token').value = '';
+  document.getElementById('gh-hint').textContent = 'Token 已清除。';
+}
+function fillGHForm() {
+  document.getElementById('gh-repo').value   = ghConfig.repo   || '';
+  document.getElementById('gh-branch').value = ghConfig.branch || 'main';
+  document.getElementById('gh-token').value  = ghConfig.token  || '';
+}
+
+// ── GitHub API ────────────────────────────────────────────
+function ghHeaders() {
+  return {
+    'Authorization': `token ${ghConfig.token}`,
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json'
+  };
+}
+function ghFileUrl() {
+  return `https://api.github.com/repos/${ghConfig.repo}/contents/data.csv?ref=${ghConfig.branch}`;
+}
+
+// 從 GitHub API 讀取 data.csv（同時取得 SHA）
+async function fetchFromGitHub() {
+  const res = await fetch(ghFileUrl(), { headers: ghHeaders(), cache: 'no-store' });
+  if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+  const json = await res.json();
+  csvSha = json.sha;
+  const text = atob(json.content.replace(/\n/g, ''));
+  // GitHub 回傳的是 base64，需要處理 UTF-8
+  const bytes = Uint8Array.from(atob(json.content.replace(/\n/g,'')), c => c.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+// 把當前 data 寫回 GitHub data.csv
+async function writeToGitHub(commitMsg) {
+  const csv = dataToCSV();
+  const encoded = btoa(unescape(encodeURIComponent(csv)));
+  const body = {
+    message: commitMsg || `Update data.csv`,
+    content: encoded,
+    branch: ghConfig.branch,
+    sha: csvSha
+  };
+  const res = await fetch(
+    `https://api.github.com/repos/${ghConfig.repo}/contents/data.csv`,
+    { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) }
+  );
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || `GitHub API ${res.status}`);
+  }
+  const json = await res.json();
+  csvSha = json.content.sha; // 更新 SHA 供下次使用
+}
+
+// 顯示寫入狀態
+let writeTimer = null;
+function showWriteStatus(type, msg) {
+  const el = document.getElementById('write-status');
+  el.className = 'write-status ws-' + type;
+  el.textContent = msg;
+  if (writeTimer) clearTimeout(writeTimer);
+  if (type === 'ok') writeTimer = setTimeout(() => { el.className = 'write-status'; }, 3000);
+}
+
+// ── 資料來源初始化 ────────────────────────────────────────
+async function reloadCSV() {
+  toast('重新載入中…');
+
+  // 優先嘗試 GitHub API（有 token + repo）
+  if (ghConfig.token && ghConfig.repo) {
+    try {
+      const text = await fetchFromGitHub();
+      data = parseCSVText(text);
+      dataSource = 'github';
+      setSourceMode('github');
+      renderAll();
+      toast('已從 GitHub 載入');
+      return;
+    } catch (e) {
+      console.warn('GitHub API failed:', e.message);
+    }
+  }
+
+  // fallback: 直接 fetch data.csv（無需 token，適合 GitHub Pages 公開 repo）
+  try {
+    const res = await fetch('data.csv', { cache: 'no-store' });
+    if (!res.ok) throw new Error();
+    const text = await res.text();
+    const parsed = parseCSVText(text);
+    if (!parsed.length) throw new Error();
+    data = parsed;
+    dataSource = 'csv';
+    setSourceMode('csv');
+    renderAll();
+    toast('已載入 data.csv（唯讀）');
+    return;
+  } catch {}
+
+  // 最終 fallback: localStorage
+  dataSource = 'local';
+  const s = JSON.parse(localStorage.getItem(LS) || '{}');
+  data = s.data || [];
+  setSourceMode('local');
+  renderAll();
+  toast('使用本機資料');
+}
+
+function setSourceMode(mode) {
+  dataSource = mode;
+  const badge   = document.getElementById('source-badge');
+  const notice  = document.getElementById('csv-notice');
+  const addCard = document.getElementById('add-card');
+  const resetBtn= document.getElementById('reset-btn');
+
+  if (mode === 'github') {
+    badge.textContent = '● GitHub 同步';
+    badge.className   = 'source-badge s-gh';
+    notice.style.display  = 'none';
+    addCard.style.display = 'block';
+    resetBtn.style.display = '';
+  } else if (mode === 'csv') {
+    badge.textContent = 'data.csv 唯讀';
+    badge.className   = 'source-badge s-csv';
+    notice.style.display  = 'block';
+    addCard.style.display = 'none';
+    resetBtn.style.display = 'none';
+  } else {
+    badge.textContent = '本機資料';
+    badge.className   = 'source-badge s-local';
+    notice.style.display  = 'none';
+    addCard.style.display = 'block';
+    resetBtn.style.display = '';
+  }
+}
+
+// ── CSV parse / generate ──────────────────────────────────
+function parseCSVText(text) {
+  const lines = text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const header = parseRow(lines[0]).map(h => h.trim());
+  const idx = k => header.indexOf(k);
+  const ni=idx('姓名'),si=idx('狀態'),ai=idx('大人'),ci=idx('小孩'),noi=idx('備註');
+  if (ni === -1) return [];
+  return lines.slice(1).map(line => {
+    const f = parseRow(line);
+    const name = (f[ni]||'').trim(); if (!name) return null;
+    return { id:uid(), name, status:toStatus(si>=0?f[si]:''),
+      adults:Math.max(0,parseInt(ai>=0?f[ai]:'0')||0),
+      children:Math.max(0,parseInt(ci>=0?f[ci]:'0')||0),
+      note:noi>=0?(f[noi]||'').trim():'' };
+  }).filter(Boolean);
+}
+function parseRow(line) {
+  const fields=[]; let cur='',inQ=false;
+  for (let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){inQ=!inQ;continue;}
+    if(ch===','&&!inQ){fields.push(cur);cur='';continue;}
+    cur+=ch;
+  }
+  fields.push(cur);
+  return fields.map(f=>f.trim());
+}
+function toStatus(s) {
+  if(!s) return 'confirmed';
+  if(s.includes('不參加')||s==='declined') return 'declined';
+  if(s.includes('考慮')||s==='pending')    return 'pending';
+  return 'confirmed';
+}
+function dataToCSV() {
+  const h = ['姓名','狀態','大人','小孩','備註'];
+  const rows = data.map(d =>
+    [d.name, sLabel(d.status), d.adults, d.children, d.note||'']
+    .map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')
+  );
+  return '\uFEFF' + [h.join(','), ...rows].join('\n');
+}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+
+// ── 資料修改後統一處理 ────────────────────────────────────
+async function afterMutate(commitMsg) {
+  renderAll();
+  if (dataSource === 'github') {
+    showWriteStatus('saving', '正在寫入 GitHub…');
+    try {
+      await writeToGitHub(commitMsg);
+      showWriteStatus('ok', '✓ 已同步到 GitHub data.csv');
+    } catch (e) {
+      showWriteStatus('err', '✗ 寫入失敗：' + e.message);
+    }
+  } else {
+    saveMeta();
+  }
+}
+
+// ── Nav ───────────────────────────────────────────────────
 function switchPage(pg, el) {
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('show'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('pg-'+pg).classList.add('show');
   el.classList.add('active');
-  if(pg==='rooms') renderRooms();
+  if (pg==='rooms')    renderRooms();
+  if (pg==='settings') fillGHForm();
 }
 
-// ── INFO ──
-function renderInfo() {
-  const fmt = d => d ? d.replace(/-/g,'/') : '—';
-  document.getElementById('v-start').textContent = fmt(tripInfo.start);
-  document.getElementById('v-end').textContent   = fmt(tripInfo.end);
-  document.getElementById('v-place').textContent = tripInfo.place||'尚未決定';
+// ── Info ──────────────────────────────────────────────────
+function renderInfo(){
+  const fmt=d=>d?d.replace(/-/g,'/'):'—';
+  document.getElementById('v-start').textContent=fmt(tripInfo.start);
+  document.getElementById('v-end').textContent=fmt(tripInfo.end);
+  document.getElementById('v-place').textContent=tripInfo.place||'尚未決定';
 }
-function toggleInfoEdit() {
-  const editing = document.getElementById('info-edit').style.display!=='none';
-  if(editing) { cancelInfoEdit(); return; }
-  document.getElementById('e-start').value = tripInfo.start||'';
-  document.getElementById('e-end').value   = tripInfo.end||'';
-  document.getElementById('e-place').value = tripInfo.place||'';
+function toggleInfoEdit(){
+  const editing=document.getElementById('info-edit').style.display!=='none';
+  if(editing){cancelInfoEdit();return;}
+  document.getElementById('ie-start').value=tripInfo.start||'';
+  document.getElementById('ie-end').value=tripInfo.end||'';
+  document.getElementById('ie-place').value=tripInfo.place==='尚未決定'?'':tripInfo.place;
   document.getElementById('info-view').style.display='none';
   document.getElementById('info-edit').style.display='block';
   document.getElementById('info-edit-btn').textContent='取消';
 }
-function cancelInfoEdit() {
+function cancelInfoEdit(){
   document.getElementById('info-view').style.display='';
   document.getElementById('info-edit').style.display='none';
   document.getElementById('info-edit-btn').textContent='編輯';
 }
-function saveInfo() {
-  tripInfo.start = document.getElementById('e-start').value;
-  tripInfo.end   = document.getElementById('e-end').value;
-  tripInfo.place = document.getElementById('e-place').value.trim()||'尚未決定';
-  save(); renderInfo(); cancelInfoEdit(); toast('活動資訊已儲存');
+function saveInfo(){
+  tripInfo.start=document.getElementById('ie-start').value;
+  tripInfo.end=document.getElementById('ie-end').value;
+  tripInfo.place=document.getElementById('ie-place').value.trim()||'尚未決定';
+  saveMeta(); renderInfo(); cancelInfoEdit(); toast('活動資訊已儲存');
 }
 
-// ── KPI + CHART ──
-function renderOverview() {
-  const confirmed = data.filter(d=>d.status==='confirmed');
-  const declined  = data.filter(d=>d.status==='declined');
-  const pending   = data.filter(d=>d.status==='pending');
-  const tA = confirmed.reduce((a,d)=>a+(+d.adults||0),0);
-  const tC = confirmed.reduce((a,d)=>a+(+d.children||0),0);
-  const pP = pending.reduce((a,d)=>a+(+d.adults||0)+(+d.children||0),0);
-  document.getElementById('k-total').textContent    = tA+tC;
-  document.getElementById('k-adults').textContent   = tA;
-  document.getElementById('k-children').textContent = tC;
-  document.getElementById('k-potential').textContent= pP;
-  document.getElementById('l-confirmed').textContent= confirmed.length+' 組';
-  document.getElementById('l-declined').textContent = declined.length+' 組';
-  document.getElementById('l-pending').textContent  = pending.length+' 組';
-  renderPie(confirmed.length, declined.length, pending.length);
+// ── Overview ──────────────────────────────────────────────
+function renderOverview(){
+  const confirmed=data.filter(d=>d.status==='confirmed');
+  const declined=data.filter(d=>d.status==='declined');
+  const pending=data.filter(d=>d.status==='pending');
+  const tA=confirmed.reduce((a,d)=>a+(+d.adults||0),0);
+  const tC=confirmed.reduce((a,d)=>a+(+d.children||0),0);
+  const pP=pending.reduce((a,d)=>a+(+d.adults||0)+(+d.children||0),0);
+  document.getElementById('k-total').textContent=tA+tC;
+  document.getElementById('k-adults').textContent=tA;
+  document.getElementById('k-children').textContent=tC;
+  document.getElementById('k-potential').textContent=pP;
+  document.getElementById('l-confirmed').textContent=confirmed.length+' 組';
+  document.getElementById('l-declined').textContent=declined.length+' 組';
+  document.getElementById('l-pending').textContent=pending.length+' 組';
+  renderPie(confirmed.length,declined.length,pending.length);
 }
-function renderPie(c,d,p) {
-  const ctx = document.getElementById('pie').getContext('2d');
+function renderPie(c,d,p){
+  const ctx=document.getElementById('pie').getContext('2d');
   if(pieChart) pieChart.destroy();
   if(c+d+p===0){
-    ctx.clearRect(0,0,140,140);ctx.fillStyle='#ddd';
-    ctx.beginPath();ctx.arc(70,70,60,0,Math.PI*2);ctx.fill();
+    ctx.clearRect(0,0,140,140);
+    ctx.fillStyle='#ddd';ctx.beginPath();ctx.arc(70,70,60,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(70,70,38,0,Math.PI*2);ctx.fill();
     return;
   }
-  pieChart = new Chart(ctx,{type:'doughnut',data:{labels:['會參加','不參加','考慮中'],datasets:[{data:[c,d,p],backgroundColor:['#639922','#A32D2D','#BA7517'],borderWidth:3,borderColor:'#fff',hoverOffset:5}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>' '+i.label+': '+i.raw+' 組'}}},cutout:'58%',animation:{duration:300}}});
+  pieChart=new Chart(ctx,{type:'doughnut',
+    data:{labels:['會參加','不參加','考慮中'],datasets:[{data:[c,d,p],backgroundColor:['#639922','#A32D2D','#BA7517'],borderWidth:3,borderColor:'#fff',hoverOffset:5}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>' '+i.label+': '+i.raw+' 組'}}},cutout:'58%',animation:{duration:300}}});
 }
 
-// ── TABLE ──
-function renderTable() {
+// ── Table ─────────────────────────────────────────────────
+function renderTable(){
   const tbody=document.getElementById('tbody'),empty=document.getElementById('empty');
   const rows=filter==='all'?data:data.filter(d=>d.status===filter);
   if(!rows.length){tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
+  const canEdit = dataSource==='github'||dataSource==='local';
+  const actions = canEdit
+    ? `<button class="act-btn" onclick="openEdit('__ID__')">編輯</button>
+       <button class="act-btn del" onclick="delEntry('__ID__')">刪除</button>`
+    : '';
   tbody.innerHTML=rows.map(d=>`<tr>
     <td style="font-weight:600">${esc(d.name)}</td>
     <td><span class="badge b-${d.status}">${sLabel(d.status)}</span></td>
     <td>${d.adults}</td><td>${d.children}</td>
     <td style="color:var(--muted);font-size:12px">${esc(d.note||'')}</td>
-    <td style="white-space:nowrap">
-      <button class="act-btn" onclick="openEdit('${d.id}')">編輯</button>
-      <button class="act-btn del" onclick="delEntry('${d.id}')">刪除</button>
-    </td></tr>`).join('');
+    <td style="white-space:nowrap">${actions.replaceAll('__ID__',d.id)}</td>
+  </tr>`).join('');
 }
 function sLabel(s){return s==='confirmed'?'會參加':s==='declined'?'不參加':'考慮中';}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// ── CRUD ──
-function addEntry(){
+// ── CRUD ──────────────────────────────────────────────────
+async function addEntry(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){alert('請輸入姓名');return;}
-  data.push({id:uid(),name,status:document.getElementById('f-status').value,adults:Math.max(0,parseInt(document.getElementById('f-adults').value)||0),children:Math.max(0,parseInt(document.getElementById('f-children').value)||0),note:document.getElementById('f-note').value.trim()});
-  save();renderAll();toast('已新增 '+name);
+  data.push({id:uid(),name,status:document.getElementById('f-status').value,
+    adults:Math.max(0,parseInt(document.getElementById('f-adults').value)||0),
+    children:Math.max(0,parseInt(document.getElementById('f-children').value)||0),
+    note:document.getElementById('f-note').value.trim()});
+  toast('已新增 '+name);
   ['f-name','f-note'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-adults').value='2';
   document.getElementById('f-children').value='0';
   document.getElementById('f-status').value='confirmed';
+  await afterMutate(`新增：${name}`);
 }
-function delEntry(id){
+async function delEntry(id){
   const d=data.find(x=>x.id===id);
-  if(!confirm('確定刪除「'+(d?d.name:'')+'」？'))return;
-  data=data.filter(x=>x.id!==id);save();renderAll();toast('已刪除');
+  if(!confirm('確定刪除「'+(d?d.name:'')+'」？')) return;
+  data=data.filter(x=>x.id!==id);
+  toast('已刪除');
+  await afterMutate(`刪除：${d?d.name:id}`);
 }
 function openEdit(id){
   const d=data.find(x=>x.id===id);if(!d)return;
@@ -447,128 +780,122 @@ function openEdit(id){
   document.getElementById('modal').classList.add('open');
 }
 function closeModal(){document.getElementById('modal').classList.remove('open');editId=null;}
-function saveEdit(){
+async function saveEdit(){
   const name=document.getElementById('e-name').value.trim();
   if(!name){alert('請輸入姓名');return;}
   const i=data.findIndex(d=>d.id===editId);if(i<0)return;
-  data[i]={...data[i],name,status:document.getElementById('e-status').value,adults:Math.max(0,parseInt(document.getElementById('e-adults').value)||0),children:Math.max(0,parseInt(document.getElementById('e-children').value)||0),note:document.getElementById('e-note').value.trim()};
-  save();renderAll();closeModal();toast('已儲存');
+  data[i]={...data[i],name,status:document.getElementById('e-status').value,
+    adults:Math.max(0,parseInt(document.getElementById('e-adults').value)||0),
+    children:Math.max(0,parseInt(document.getElementById('e-children').value)||0),
+    note:document.getElementById('e-note').value.trim()};
+  closeModal(); toast('已儲存');
+  await afterMutate(`編輯：${name}`);
 }
 function setFilter(f,el){
   filter=f;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');renderTable();
 }
-function confirmReset(){if(!confirm('確定清空所有名單？'))return;data=[];save();renderAll();toast('已清空');}
-
-// ── ROOMS ──
-function autoCalcRooms(){
-  const confirmed=data.filter(d=>d.status==='confirmed');
-  let double=0,single=0,family=0;
-  confirmed.forEach(d=>{
-    const a=+d.adults||0,c=+d.children||0;
-    if(c>0) family++;
-    else if(a>=2) double++;
-    else single++;
-  });
-  roomCounts={double,single,family};
-  document.getElementById('ra-double').textContent=double;
-  document.getElementById('ra-single').textContent=single;
-  document.getElementById('ra-family').textContent=family;
-  save();renderRooms();toast('已自動計算房間');
+async function confirmReset(){
+  if(!confirm('確定清空所有名單？此動作會寫回 data.csv，無法復原。')) return;
+  data=[];toast('已清空');
+  await afterMutate('清空名單');
 }
+function exportCSV(){
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(dataToCSV());
+  a.download='包棟名單.csv';a.click();toast('已匯出 CSV');
+}
+
+// ── Rooms ─────────────────────────────────────────────────
 function adjRoom(type,delta){
   roomCounts[type]=Math.max(0,(roomCounts[type]||0)+delta);
   document.getElementById('ra-'+type).textContent=roomCounts[type];
-  save();
+  saveMeta();
+}
+function syncRoomInputs(){['family','double','single'].forEach(t=>document.getElementById('ra-'+t).textContent=roomCounts[t]);}
+function autoCalcRooms(){
+  const confirmed=data.filter(d=>d.status==='confirmed');
+  let f=0,db=0,s=0;
+  confirmed.forEach(d=>{const a=+d.adults||0,c=+d.children||0;if(c>0)f++;else if(a>=2)db++;else s++;});
+  roomCounts={family:f,double:db,single:s};
+  syncRoomInputs();saveMeta();renderRooms();toast('已自動計算房間');
 }
 function renderRooms(){
-  // sync display
-  document.getElementById('ra-double').textContent=roomCounts.double;
-  document.getElementById('ra-single').textContent=roomCounts.single;
-  document.getElementById('ra-family').textContent=roomCounts.family;
-
-  const total=roomCounts.double+roomCounts.single+roomCounts.family;
-  const cap=roomCounts.double*2+roomCounts.single*1+roomCounts.family*4;
+  syncRoomInputs();
+  const total=roomCounts.family+roomCounts.double+roomCounts.single;
+  const cap=roomCounts.family*4+roomCounts.double*2+roomCounts.single*1;
   const confirmed=data.filter(d=>d.status==='confirmed');
   const people=confirmed.reduce((a,d)=>a+(+d.adults||0)+(+d.children||0),0);
   const spare=cap-people;
-
   document.getElementById('rk-total').textContent=total;
   document.getElementById('rk-people').textContent=people;
-  document.getElementById('rk-spare').textContent=Math.max(0,spare)+(spare<0?' ⚠️不足':'');
-
-  // build family → room type mapping
-  const families=confirmed.map(d=>({...d,roomType: (+d.children||0)>0?'family': (+d.adults||0)>=2?'double':'single'}));
-
-  // render room cards
+  document.getElementById('rk-spare').textContent=(spare<0?'⚠️ ':'')+Math.abs(spare)+(spare<0?' 不足':' 空位');
   const list=document.getElementById('room-list');
-  if(!families.length){list.innerHTML='<div class="empty">名單中還沒有已確認的家庭</div>';document.getElementById('hostel-hint').style.display='none';return;}
-
+  if(!confirmed.length){list.innerHTML='<div class="empty">名單中還沒有已確認的家庭</div>';document.getElementById('hostel-hint').style.display='none';return;}
+  const typeMap={family:'家庭房',double:'雙人房',single:'單人房'};
+  const dotMap={family:'dot-family',double:'dot-double',single:'dot-single'};
+  const rtMap={family:'rt-family',double:'rt-double',single:'rt-single'};
   let html='';
-  // group by room type
-  const groups=[{type:'family',label:'家庭房',dot:'dot-family'},{type:'double',label:'雙人房',dot:'dot-double'},{type:'single',label:'單人房',dot:'dot-single'}];
-  groups.forEach(g=>{
-    const fams=families.filter(f=>f.roomType===g.type);
-    if(!fams.length)return;
-    fams.forEach((f,i)=>{
-      const key=g.type+'_'+i;
-      const note=roomNotes[key]||'';
+  ['family','double','single'].forEach(type=>{
+    confirmed.filter(d=>{const a=+d.adults||0,c=+d.children||0;
+      if(type==='family') return c>0;
+      if(type==='double') return c===0&&a>=2;
+      return c===0&&a<2;
+    }).forEach(d=>{
+      const key=`${type}_${d.id}`,note=roomNotes[key]||'',tot=(+d.adults||0)+(+d.children||0);
       html+=`<div class="combo-card">
         <div class="combo-header">
-          <span class="room-type-badge rt-${g.type}">${g.label}</span>
-          <span class="combo-name">${esc(f.name)}</span>
-          <span class="combo-total">${(+f.adults||0)+(+f.children||0)} 人 · 大人${f.adults} 小孩${f.children}</span>
+          <span class="room-type-badge ${rtMap[type]}">${typeMap[type]}</span>
+          <span class="combo-name">${esc(d.name)}</span>
+          <span class="combo-count">${tot} 人・大人 ${d.adults}、小孩 ${d.children}</span>
         </div>
         <div class="combo-rooms">
-          <div class="combo-room"><div class="${g.dot}"></div>${g.label} ×1</div>
-          ${f.note?`<div class="combo-room" style="background:var(--am-bg);color:var(--am-dark)">${esc(f.note)}</div>`:''}
+          <div class="combo-room"><div class="${dotMap[type]}"></div>${typeMap[type]} × 1</div>
+          ${d.note?`<div class="combo-room" style="background:var(--am-bg);color:var(--am-dark)">${esc(d.note)}</div>`:''}
         </div>
-        <input class="note-input" placeholder="備註這間房（例：需要加床、一樓優先）" value="${esc(note)}" oninput="saveRoomNote('${key}',this.value)">
+        <input class="note-input" placeholder="備註（例：需要加床、一樓優先）"
+          value="${esc(note)}" oninput="saveRoomNote('${key}',this.value)">
       </div>`;
     });
   });
   list.innerHTML=html;
-
-  // hostel hint
-  const hint=document.getElementById('hostel-hint');
-  const kw=document.getElementById('hostel-keywords');
-  hint.style.display='block';
+  document.getElementById('hostel-hint').style.display='block';
   const tags=[
-    `<span class="room-tag">共${total}間</span>`,
-    roomCounts.family?`<span class="room-tag">家庭房×${roomCounts.family}</span>`:'',
-    roomCounts.double?`<span class="room-tag">雙人房×${roomCounts.double}</span>`:'',
-    roomCounts.single?`<span class="room-tag">單人房×${roomCounts.single}</span>`:'',
-    `<span class="room-tag">可容納${cap}人</span>`,
     `<span class="room-tag">包棟</span>`,
+    `<span class="room-tag">共 ${total} 間</span>`,
+    roomCounts.family?`<span class="room-tag">家庭房 × ${roomCounts.family}</span>`:'',
+    roomCounts.double?`<span class="room-tag">雙人房 × ${roomCounts.double}</span>`:'',
+    roomCounts.single?`<span class="room-tag">單人房 × ${roomCounts.single}</span>`:'',
+    `<span class="room-tag">可容納 ${cap} 人</span>`,
     tripInfo.place&&tripInfo.place!=='尚未決定'?`<span class="room-tag">${tripInfo.place}</span>`:'',
-    `<span class="room-tag">2026/09/19-20</span>`,
+    `<span class="room-tag">2026/09/19–20</span>`,
   ].filter(Boolean).join(' ');
-  kw.innerHTML=tags+'<div style="margin-top:10px;font-size:12px;color:var(--muted)">複製上方關鍵字，貼到民宿平台或 Google 搜尋</div>';
+  document.getElementById('hostel-keywords').innerHTML=tags+
+    '<div style="margin-top:10px;font-size:12px;color:var(--muted)">複製上方關鍵字，貼到民宿平台或 Google 搜尋</div>';
 }
-function saveRoomNote(key,val){roomNotes[key]=val;save();}
+function saveRoomNote(key,val){roomNotes[key]=val;saveMeta();}
 
-// ── EXPORT ──
-function exportCSV(){
-  const h=['姓名','狀態','大人','小孩','備註'];
-  const rows=data.map(d=>[d.name,sLabel(d.status),d.adults,d.children,d.note||''].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));
-  const csv='\uFEFF'+[h.join(','),...rows].join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='包棟名單.csv';a.click();
-  toast('已匯出 CSV');
+// ── Toast ─────────────────────────────────────────────────
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2200);
 }
-
-// ── TOAST ──
-function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
-
-// ── RENDER ALL ──
 function renderAll(){renderOverview();renderTable();}
+
+// ── Init ──────────────────────────────────────────────────
+async function init(){
+  loadLS();
+  renderInfo();
+  fillGHForm();
+  await reloadCSV();
+  syncRoomInputs();
+}
 
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 document.getElementById('f-name').addEventListener('keydown',e=>{if(e.key==='Enter')addEntry();});
-
-load();renderInfo();renderAll();
-// sync room count display on load
-document.getElementById('ra-double').textContent=roomCounts.double;
-document.getElementById('ra-single').textContent=roomCounts.single;
-document.getElementById('ra-family').textContent=roomCounts.family;
+init();
 </script>
+</body>
+</html>
